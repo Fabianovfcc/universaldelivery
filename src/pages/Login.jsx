@@ -12,19 +12,19 @@ const Login = () => {
   const { signIn } = useAuth()
   const navigate = useNavigate()
 
-  const handleAdminLogin = async (e) => {
-    e.preventDefault()
-    setError('')
-    setLoading(true)
-
-    const { error: signInError } = await signIn(email, password)
-
+    const { data, error: signInError } = await signIn(email, password)
+    
     if (signInError) {
-      setError('Email ou senha incorretos.')
+      setError(signInError.message || 'Email ou senha incorretos.')
       setLoading(false)
-    } else {
-      navigate('/admin')
+      return
     }
+
+    // Se o login funcionou, vamos dar um pequeno tempo para o AuthContext carregar o perfil
+    // Se o perfil não carregar, avisamos o usuário
+    setTimeout(() => {
+      navigate('/admin')
+    }, 500)
   }
 
 
@@ -74,6 +74,8 @@ const Login = () => {
             <div className="form-group">
               <label className="form-label">Email</label>
               <input 
+                id="admin-email"
+                name="email"
                 type="email" 
                 className="form-input" 
                 placeholder="seu@email.com"

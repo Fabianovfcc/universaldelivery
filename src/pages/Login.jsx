@@ -12,34 +12,47 @@ const Login = () => {
   const { signIn } = useAuth()
   const navigate = useNavigate()
 
-    const { data, error: signInError } = await signIn(email, password)
-    
-    if (signInError) {
-      setError(signInError.message || 'Email ou senha incorretos.')
+  const handleAdminLogin = async (e) => {
+    e.preventDefault()
+    setError('')
+    setLoading(true)
+
+    try {
+      const { error: signInError } = await signIn(email, password)
+      
+      if (signInError) {
+        setError(signInError.message || 'Email ou senha incorretos.')
+        setLoading(false)
+        return
+      }
+
+      // Pequeno delay para garantir que o AuthContext carregue o perfil
+      setTimeout(() => {
+        navigate('/admin')
+      }, 500)
+    } catch (err) {
+      setError('Erro ao tentar fazer login. Verifique sua conexão.')
       setLoading(false)
-      return
     }
-
-    // Se o login funcionou, vamos dar um pequeno tempo para o AuthContext carregar o perfil
-    // Se o perfil não carregar, avisamos o usuário
-    setTimeout(() => {
-      navigate('/admin')
-    }, 500)
   }
-
 
   const handleMotoboyLogin = async (e) => {
     e.preventDefault()
     setError('')
     setLoading(true)
 
-    const { error: signInError } = await signIn(email, password)
+    try {
+      const { error: signInError } = await signIn(email, password)
 
-    if (signInError) {
-      setError('Credenciais incorretas.')
+      if (signInError) {
+        setError('Credenciais incorretas.')
+        setLoading(false)
+      } else {
+        navigate('/motoboy')
+      }
+    } catch (err) {
+      setError('Erro de conexão.')
       setLoading(false)
-    } else {
-      navigate('/motoboy')
     }
   }
 
@@ -72,7 +85,7 @@ const Login = () => {
         {!isMotoboy ? (
           <form onSubmit={handleAdminLogin}>
             <div className="form-group">
-              <label className="form-label">Email</label>
+              <label className="form-label" htmlFor="admin-email">Email</label>
               <input 
                 id="admin-email"
                 name="email"
@@ -85,8 +98,10 @@ const Login = () => {
               />
             </div>
             <div className="form-group">
-              <label className="form-label">Senha</label>
+              <label className="form-label" htmlFor="admin-password">Senha</label>
               <input 
+                id="admin-password"
+                name="password"
                 type="password" 
                 className="form-input" 
                 placeholder="••••••••"
@@ -102,8 +117,10 @@ const Login = () => {
         ) : (
           <form onSubmit={handleMotoboyLogin}>
             <div className="form-group">
-              <label className="form-label">Email do Motoboy</label>
+              <label className="form-label" htmlFor="moto-email">Email do Motoboy</label>
               <input 
+                id="moto-email"
+                name="email"
                 type="email" 
                 className="form-input" 
                 placeholder="motoboy@exemplo.com"
@@ -113,8 +130,10 @@ const Login = () => {
               />
             </div>
             <div className="form-group">
-              <label className="form-label">Senha</label>
+              <label className="form-label" htmlFor="moto-password">Senha</label>
               <input 
+                id="moto-password"
+                name="password"
                 type="password" 
                 className="form-input" 
                 placeholder="••••••••"

@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "vite --host",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "start": "vite preview --port $PORT --host"
   },
   "dependencies": {
     "@googlemaps/js-api-loader": "^1.16.6",

@@ -22,7 +22,7 @@ const ProtectedRoute = ({ children, role }) => {
 }
 
 function App() {
-  const { profile } = useAuth()
+  const { profile, loading } = useAuth()
 
   return (
     <GeolocationProvider>

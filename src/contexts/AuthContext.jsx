@@ -14,27 +14,47 @@ export const AuthProvider = ({ children }) => {
       return;
     }
 
+    // Segurança: Se demorar mais de 5 segundos, libera o loading de qualquer jeito
+    const safetyTimeout = setTimeout(() => {
+      if (loading) {
+        console.warn('Timeout de segurança atingido no AuthContext');
+        setLoading(false);
+      }
+    }, 5000);
+
     // Verificar sessão inicial
     supabase.auth.getSession().then(({ data: { session } }) => {
+      console.log('Sessão inicial verificada:', session?.user?.id);
       setUser(session?.user ?? null);
-      if (session?.user) fetchProfile(session.user.id);
-      else setLoading(false);
-    });
-
-    // Escutar mudanças na auth
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
-      if (session?.user) fetchProfile(session.user.id);
-      else {
-        setProfile(null);
+      if (session?.user) {
+        fetchProfile(session.user.id);
+      } else {
         setLoading(false);
+        clearTimeout(safetyTimeout);
       }
     });
 
-    return () => subscription.unsubscribe();
+    // Escutar mudanças na auth
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log('Mudança de estado Auth:', event, session?.user?.id);
+      setUser(session?.user ?? null);
+      if (session?.user) {
+        fetchProfile(session.user.id);
+      } else {
+        setProfile(null);
+        setLoading(false);
+        clearTimeout(safetyTimeout);
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+      clearTimeout(safetyTimeout);
+    };
   }, []);
 
   const fetchProfile = async (id) => {
+    console.log('Buscando perfil para ID:', id);
     try {
       const { data, error } = await supabase
         .from('usuarios')
@@ -42,9 +62,18 @@ export const AuthProvider = ({ children }) => {
         .eq('id', id)
         .maybeSingle();
       
-      if (data) setProfile(data);
+      if (error) {
+        console.error('Erro Supabase ao buscar perfil:', error);
+      }
+      
+      if (data) {
+        console.log('Perfil encontrado:', data);
+        setProfile(data);
+      } else {
+        console.warn('Nenhum perfil encontrado na tabela usuarios para este ID.');
+      }
     } catch (err) {
-      console.error('Erro ao buscar perfil:', err);
+      console.error('Crash ao buscar perfil:', err);
     } finally {
       setLoading(false);
     }
